@@ -1,9 +1,4 @@
-accessinfo0809 <- readLines('http://webarchive.bac-lac.gc.ca:8080/wayback/20140805210734/http://www.infosource.gc.ca/xml/ATIP%202008-2009.xml')
-file.create("/Users/laurencehorton/Github/1005/1005/file0809.txt")
-raw_file0809 <- ("/Users/laurencehorton/Github/1005/1005/file0809.txt")
-write.table(accessinfo0809, raw_file0809, )
-file.create("/Users/laurencehorton/Github/1005/1005/file0809.csv")
-accessinfo <- read.csv(file = "/Users/laurencehorton/Github/1005/1005/file0809.csv", na.strings='.')
+accessinfo <- read.csv(file = "https://raw.githubusercontent.com/laurencehorton/inf1005-3/master/ati-2007-2014datafiles/file0809.csv", na.strings='.')
 accessinfo$x <- NULL
 submedia <- subset(accessinfo, X.1 == "</media>") 
 subacademics <- subset(accessinfo, X.1 == "</academia>")
