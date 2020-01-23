@@ -1,8 +1,5 @@
 accessinfo1415 <- readLines('https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2014-2015.xml')
-file.create("/Users/laurencehorton/Github/1005/1005/file1415.txt")
-raw_file1415 <- ("/Users/laurencehorton/Github/1005/1005/file1415.txt")
-write.table(accessinfo1415, raw_file1415)
-file.create("/Users/laurencehorton/Github/1005/1005/file1415.csv")
+file.create("https://raw.githubusercontent.com/laurencehorton/inf1005-3/master/ati-2007-2014datafiles/file1415.csv")
 accessinfo <- read.csv(file = "/Users/laurencehorton/Github/1005/1005/file1415.csv")
 accessinfo$x <- NULL
 submedia <- subset(accessinfo, X.1 == "</Media>") 
