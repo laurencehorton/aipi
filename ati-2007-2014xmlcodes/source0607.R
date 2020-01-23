@@ -1,6 +1,5 @@
 accessinfo0607 <- readLines('http://webarchive.bac-lac.gc.ca:8080/wayback/20140805210734/http://www.infosource.gc.ca/xml/ATIP%202006-2007.xml')
-file.create("/Users/laurencehorton/Github/1005/1005/file0607.txt")
-raw_file0607 <- ("/Users/laurencehorton/Github/1005/1005/file0607.txt")
+raw_file0607 <- ("https://raw.githubusercontent.com/laurencehorton/inf1005-3/master/ati-2007-2014datafiles/file0607.csv")
 write.table(accessinfo0607, raw_file0607)
 file.create("/Users/laurencehorton/Github/1005/1005/file0607.csv")
 accessinfo <- read.csv(file = "/Users/laurencehorton/Github/1005/1005/file0607.csv")
