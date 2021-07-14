@@ -1,0 +1,386 @@
+---
+title: "Government of Canada Statistics on the Access to Information Act by institution, 2013-2014 to 2019-2020"
+author: "Laurence Horton"
+date: "12/07/2021"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+Access to information and privacy statistics by source of requests, 1996-1997 to 2019-2020 <https://www.canada.ca/en/treasury-board-secretariat/services/access-information-privacy/statistics-atip.html>
+
+```{r library}
+library(tidyverse) # For importing files and manipulation
+library(lubridate) # To extract the year and month from the data variable.
+library(xml2) # Working with XML data import.
+library(rvest) # Working with XML data processing.
+library(stringi) # Working with XML data cleaning
+```
+
+
+```{r by institution 2013-2014}
+link1314 <-
+  "https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2013-2014.xml"
+
+# Import into R
+aipa1314 <-
+  read_xml(link1314,
+           encoding = "",
+           as_html = TRUE)
+
+value <- xml_child(xml_child(aipa1314, 1), 1)
+value <- as_list(value)
+value <- as_tibble(value, .name_repair = "minimal")
+value <- t(value)
+value <- value[!(row.names(value) %in% c("title", "title.1")),]
+value <- as.data.frame(value, row.names = FALSE)
+value$V3 <- NULL
+value$V1 <- gsub(".*nameeng =", "", value$V1)
+value$V1 <- gsub(",.*", "", value$V1)
+value$V1 <- gsub("list", "", gsub("[[:punct:]]", "", value$V1))
+value$V1 <- gsub("list", "", gsub("\"", "", value$V1))
+value$V1 <- gsub("\\(", "", gsub("\\)", "", value$V1))
+value$V2 <- gsub("closedduringperiod.*", "", value$V2)
+value$V2 <- gsub(".*total =", "", value$V2)
+value$V2 <- gsub("list", "", gsub("[[:punct:]]", "", value$V2))
+value$V2 <- as.numeric(value$V2)
+institution1314 <-
+  value %>% rename(Institution = V1, "Received during reporting period" = V2) %>% add_column(Year = "2013-2014", .before = 1)
+```
+
+```{r by institution 2014-2015}
+link1415 <-
+  "https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2014-2015.xml"
+
+# Import into R
+aipa1415 <-
+  read_xml(link1415,
+           encoding = "",
+           as_html = TRUE)
+
+value <- xml_child(xml_child(aipa1415, 1), 1)
+value <- as_list(value)
+value <- as_tibble(value, .name_repair = "minimal")
+value <- t(value)
+value <- value[!(row.names(value) %in% c("title", "title.1")), ]
+value <- as.data.frame(value, row.names = FALSE)
+value$V3 <- NULL
+value$V1 <- gsub(".*nameeng =", "", value$V1)
+value$V1 <- gsub(",.*", "", value$V1)
+value$V1 <- gsub("list", "", gsub("\"", "", value$V1))
+value$V1 <- gsub("\\(", "", gsub("\\)", "", value$V1))
+value$V2 <- gsub("outstandingfromprevious.*", "", value$V2)
+value$V2 <- gsub(".*receivedduringperiod = list", "", value$V2)
+value$V2 <- gsub("[[:punct:]]", "", value$V2)
+value$V2 <- as.numeric(value$V2)
+institution1415 <-
+  value %>% rename(Institution = V1,
+                   "Received during reporting period" = V2) %>% add_column(Year = "2014-2015", .before = 1)
+rm(value)
+```
+
+```{r by institution 2015-2016}
+# Pull  out agencies and total requests received during reporting period.
+link1516 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20152106-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file. read_csv seems to work better than read.csv
+aipa1516 <-
+  read_csv(
+    link1516,
+    skip = 4,
+    col_names = TRUE,
+    locale = locale(encoding = "UTF-8")
+  )
+
+institution1516 <-
+  aipa1516 %>% rename(Institution = X1) %>% select(Institution, "Received during reporting period") %>% add_column(Year = "2015-2016", .before = 1)
+```
+
+```{r by institution 2016-2017}
+link1617 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20171219-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1617 <-
+  read_csv(
+    link1617,
+    skip = 4,
+    col_names = TRUE,
+    locale = locale(encoding = "UTF-8")
+  )
+
+institution1617 <-
+  aipa1617 %>% rename(Institution = X1) %>% select(Institution, "Received during reporting period") %>% add_column(Year = "2016-2017", .before = 1)
+```
+
+```{r by institution 2017-2018}
+link1718 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20181218-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1718 <-
+  read_csv(
+    link1718,
+    skip = 4,
+    col_names = TRUE,
+    locale = locale(encoding = "UTF-8")
+  )
+institution1718 <-
+  aipa1718 %>% rename(Institution = X1) %>% select(Institution, "Received during reporting period") %>% add_column(Year = "2017-2018", .before = 1)
+```
+
+```{r by institution 2018-2019}
+link1819 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/2018-19-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1819 <-
+  read_csv(
+    link1819,
+    skip = 4,
+    col_names = TRUE,
+    locale = locale(encoding = "UTF-8")
+  )
+
+institution1819 <-
+  aipa1819 %>% rename(Institution = X1) %>% select(Institution, "Received during reporting period") %>% add_column(Year = "2018-2019", .before = 1)
+```
+
+```{r by institution 2019-2020}
+link1920 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/2019-20-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1920 <-
+  read_csv(
+    link1920,
+    skip = 2,
+    col_names = TRUE,
+    locale = locale(encoding = "UTF-8")
+  )
+
+institution1920 <-
+  aipa1920 %>% rename(Institution = X1) %>% select(Institution, "Received during reporting period") %>% add_column(Year = "2019-2020", .before = 1)
+```
+
+```{r bind years into one table}
+# Bind them all together into one table.
+institution <-
+  rbind(
+    institution1314,
+    institution1415,
+    institution1516,
+    institution1617,
+    institution1718,
+    institution1819,
+    institution1920
+  )
+```
+
+```{r}
+rm(link1314,
+   link1415,
+   link1516,
+   link1617,
+   link1718,
+   link1819,
+   link1920)
+rm(institution1314,
+   institution1415,
+   institution1516,
+   institution1617,
+   institution1718,
+   institution1819,
+   institution1920)
+```
+
+```{r clean Institution column}
+institution$Institution <-
+  stri_conv(institution$Institution, from = NULL, to = "UTF-8") # Convert to UFT-8 encoding
+institution$Institution <- trimws(institution$Institution) # Trim white space
+institution$Institution <- gsub("\\.", "", institution$Institution) # Remove period points.
+institution <-
+  rename(institution, N = "Received during reporting period") # Rename column
+```
+
+```{r recode names}
+# Manual recode agencies that have similar names or typos.
+institution$Institution <-
+  gsub(
+    "Canadian Museum of History and the Canadian War Museum",
+    "Canadian Museum of History and Canadian War Museum",
+    gsub(
+      "Ingenium - Canada's Museum of Science and Innovation",
+      "Ingenium - Canada's Museums of Science and Innovation",
+      gsub(
+        "Communication Security Establishment Canada",
+        "Communication Security Establishment",
+        gsub(
+          "Exinvest Inc",
+          "Exinvest",
+          gsub(
+            "Exinvest. (Export Development Canada)",
+            "Exinvest",
+            gsub(
+              "Sept-\xceles Port Authority",
+              "Sept-Îles Port Authority",
+              gsub(
+                "Trois-Rivi\xe8res Port Authority",
+                "Trois-Rivières Port Authority",
+                gsub(
+                  "Canada Economic Development for Qu\xe9bec Regions",
+                  "Canada Economic Development for Quebec Regions",
+                  gsub(
+                    "Agriculture and AgriFood Canada",
+                    "Agriculture and Agri-Food Canada",
+                    gsub(
+                      "CanadaNewfoundland and Labrador Offshore Petroleum Board",
+                      "Canada-Newfoundland and Labrador Offshore Petroleum Board",
+                      gsub(
+                        "CanadaNovaScotia Offshore Petroleum Board",
+                        "Canada-Nova-Scotia Offshore Petroleum Board",
+                        gsub(
+                          "Canadian Radiotelevision and Telecommunications Commission",
+                          "Canadian Radio-television and Telecommunications Commission",
+                          gsub(
+                            "Employment and Social Development Canadatttttt",
+                            "Employment and Social Development Canada",
+                            gsub(
+                              "Entreprise Cape Breton Corporation",
+                              "Enterprise Cape Breton Corporation",
+                              gsub(
+                                "Gwichin Land Use Planning Board",
+                                "Gwich'in Land Use Planning Board",
+                                gsub(
+                                  "Communication Security Establishment",
+                                  "Communications Security Establishment",
+                                  gsub(
+                                    "Office of the Administrator of the Shipsource Oil Pollution Fund",
+                                    "Office of the Administrator of the Ship-source Oil Pollution Fund",
+                                    gsub(
+                                      "Office of the Public Sector Integrity Commissionner of Canada",
+                                      "Office of the Public Sector Integrity Commissioner of Canada",
+                                      gsub(
+                                        "Pierre Eliott Trudeau Foundation",
+                                        "Pierre Elliott Trudeau Foundation",
+                                        gsub(
+                                          "Revera Inc Public Sector Pension Investment Board",
+                                          "Revera Inc (Public Sector Pension Investment Board)",
+                                          gsub(
+                                            "St Johns Port Authority",
+                                            "St John's Port Authority",
+                                            gsub(
+                                              "Yukon Environment SocioEconomic Assessment Board",
+                                              "Yukon Environment Socio-Economic Assessment Board",
+                                              gsub(
+                                                "RCMH-MRCF Inc Royal Canadian Mint",
+                                                "RCMH-MRCF Inc (Royal Canadian Mint)",
+                                                gsub(
+                                                  "RCMHMRCF Inc Royal Canadian Mint",
+                                                  "RCMH-MRCF Inc (Royal Canadian Mint)",
+                                                  gsub(
+                                                    "Seaway International Bridge Corporation Ltd",
+                                                    "Seaway International Bridge Corporation",
+                                                    gsub(
+                                                      "Exinvest (Export Development Canada)",
+                                                      "Exinvest",
+                                                      gsub(
+                                                        "Exinvest (Export Development Canada)",
+                                                        "Exinvest",
+                                                        gsub(
+                                                          "Canada Lands Company CLC Limited Canada Lands Company Limited",
+                                                          "Canada Lands Company CLC Limited (Canada Lands Company Limited)",
+                                                          gsub(
+                                                            "TroisRivières Port Authority",
+                                                            "Trois-Rivières Port Authority",
+                                                            gsub(
+                                                              "SeptÎles Port Authority",
+                                                              "Sept-Îles Port Authority",
+                                                              gsub(
+                                                                "Sept-�les Port Authority",
+                                                                "Sept-Îles Port Authority",
+                                                                gsub(
+                                                                  "Trois-Rivi�res Port Authority",
+                                                                  "Trois-Rivières Port Authority",
+                                                                  institution$Institution
+                                                                )
+                                                              )
+                                                            )
+                                                          )
+                                                        )
+                                                      )
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+```
+
+```{r summarise}
+# Use summarise to find the number of times an agency appears in the table.
+suminst <-
+  institution %>% group_by(Institution) %>% summarise(N = n())
+notallyears <- suminst %>% filter(N < 7) # In this case 2013-2014 to 2019-2020, so should = 7. Anything less should be filtered to this table.
+```
+
+```{r}
+# Filter institutions back into years
+a <-
+  institution %>% filter(Year == "2013-2014") %>% select(Institution:N) %>% rename("2013-2014" = N)
+b <-
+  institution %>% filter(Year == "2014-2015") %>% select(Institution:N) %>% rename("2014-2015" = N)
+c <-
+  institution %>% filter(Year == "2015-2016") %>% select(Institution:N) %>% rename("2015-2016" = N)
+d <-
+  institution %>% filter(Year == "2016-2017") %>% select(Institution:N) %>% rename("2016-2017" = N)
+e <-
+  institution %>% filter(Year == "2017-2018") %>% select(Institution:N) %>% rename("2017-2018" = N)
+f <-
+  institution %>% filter(Year == "2018-2019") %>% select(Institution:N) %>% rename("2018-2019" = N)
+g <-
+  institution %>% filter(Year == "2019-2020") %>% select(Institution:N) %>% rename("2019-2020" = N)
+```
+
+```{r bind years using left_join}
+institutionbyyear <-
+  as_tibble(a %>% left_join(b, by = "Institution") %>% left_join(c, by = "Institution") %>% left_join(d, by = "Institution") %>% left_join(e, by = "Institution") %>% left_join(f, by = "Institution") %>% left_join(g, by = "Institution"))
+```
+
+```{r remove by year files}
+rm(a, b, c, d, e, f, g)
+```
+
+```{r create table institution percentage by year}
+for(col in names(institutionbyyear)[-1]) {
+     institutionbyyear[paste0(col, " %")] = institutionbyyear[col] / sum(institutionbyyear[col], na.rm = TRUE)
+}
+rm(col)
+institutionbyyear_pct <- as_tibble(institutionbyyear %>% select("Institution" | ends_with(" %")) %>% mutate_if(is.numeric, ~round(., 4) * 100))
+institutionbyyear <- institutionbyyear %>% select(!ends_with(" %"))
+```

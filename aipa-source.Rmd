@@ -1,0 +1,501 @@
+---
+title: "Government of Canada Statistics on the Access to Information Act by source of request, 1996-1997 to 2005-2006 and 2013-2014 to 2019-2020"
+author: "Laurence Horton"
+date: "03/07/2021"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+Access to information and privacy statistics by source of requests, 1996-1997 to 2019-2020 <https://www.canada.ca/en/treasury-board-secretariat/services/access-information-privacy/statistics-atip.html>
+
+```{r library}
+library(tidyverse) # For importing files and manipulation
+library(lubridate) # To extract the year and month from the data variable.
+library(xml2) # Working with XML data import.
+library(rvest) # Working with XML data processing.
+```
+
+```{r import data 1996-1997 to 2005-2006}
+# These data have been keyed into a .csv file from a combination of pdf and html copes of Access to Information and Privacy reports available at https://www.canada.ca/en/treasury-board-secretariat/services/access-information-privacy/statistics-atip.html
+
+# Create path to file
+aipa9606 <-
+  "https://raw.githubusercontent.com/laurencehorton/inf1005-3/master/aipa-source9606.csv"
+
+# Import .csv file dropping the data sources references
+aipa9606 <- read.csv(aipa9606, skip = 13)
+sourcerequest9606 <- as_tibble(aipa9606) %>%
+  add_column(Decline = NA)
+```
+
+```{r import data 2006-2007 to 2014-2015}
+# Import data from XML file from Canadian Government website. Links pre-2013-2014 not currently working.
+```
+
+```{r clean 2006-2007}
+link0607 <-
+    "http://webarchive.bac-lac.gc.ca:8080/wayback/20140805210734/http://www.infosource.gc.ca/xml/ATIP%202006-2007.xml"
+```
+
+```{r clean 2007-2008}
+link0708 <-
+    "http://webarchive.bac-lac.gc.ca:8080/wayback/20140805210734/http://www.infosource.gc.ca/xml/ATIP%202007-2008.xml"
+```
+
+```{r clean 2009-2010}
+link0910 <-
+    "https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2009-2010.xml"
+```
+
+```{r clean 2010-2011}
+link1011 <-
+    "http://webarchive.bac-lac.gc.ca:8080/wayback/20140805201157/http://infosource.gc.ca/xml/ATIP-2010-2011.xml"
+```
+
+```{r clean 2011-2012}
+link1112 <- 
+  "http://webarchive.bac-lac.gc.ca:8080/wayback/20140805201157/http://infosource.gc.ca/xml/ATIP-2011-2012.xml"
+```
+
+```{r clean 2012-2013}
+link1213 <- 
+    "http://webarchive.bac-lac.gc.ca:8080/wayback/20140805201157/http://infosource.gc.ca/xml/ATIP-2012-2013.xml"
+```
+
+```{r clean 2013-2014}
+link1314 <- 
+    "https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2013-2014.xml"
+
+# Import into R
+aipa1314 <-
+  read_xml(link1314,
+           encoding = "",
+           as_html = TRUE)
+
+# Extract by source of request.
+media <- as.character(html_nodes(aipa1314, "media")) # Identify node
+media <- gsub("[^0-9]", "", media) # Keep only number
+media <-
+  media %>% as_tibble(media) %>% rename(Media = value) # Rename column for merge.
+
+academic <- as.character(html_nodes(aipa1314, "academia"))
+academic <- gsub("[^0-9]", "", academic)
+academic <-
+  academic %>% as_tibble(academic) %>% rename(Academic = value)
+
+business <- as.character(html_nodes(aipa1314, "business"))
+business <- gsub("[^0-9]", "", business)
+business <-
+  business %>% as_tibble(business) %>% rename(Business = value)
+
+orginisation <- as.character(html_nodes(aipa1314, "organization"))
+orginisation <- gsub("[^0-9]", "", orginisation)
+orginisation <-
+  orginisation %>% as_tibble(orginisation) %>% rename(Orginisation = value)
+
+public <- as.character(html_nodes(aipa1314, "public"))
+public <- gsub("[^0-9]", "", public)
+public <- public %>% as_tibble(public) %>% rename(Public = value)
+
+# Bind columns together
+sourcerequest1314 <-
+  cbind(academic, business, media, orginisation, public)
+sourcerequest1314 <-
+  apply(sourcerequest1314, 2, as.numeric) # Make numeric for sums.
+x <- colSums(sourcerequest1314) # Calculate column sums
+sourcerequest1314 <-
+  as_tibble(rbind(x, sourcerequest1314)) # add back to table
+rm(x) # remove temp df
+sourcerequest1314 <-
+  sourcerequest1314[c(1),] # remove the rest of the rows and leave only the column sum.
+
+# Add year variable
+sourcerequest1314 <- sourcerequest1314 %>%
+  add_column(Year = "2013-2014", .before = 1) %>%
+  add_column(Decline = NA)
+```
+
+```{r clean 2014-2015}
+link1415 <-
+  "https://www.canada.ca/content/dam/canada/tbs-sct/migration/hgw-cgf/oversight-surveillance/atip-aiprp/sr-rs/xmls/ATIP-2014-2015.xml"
+
+# Import into R
+aipa1415 <-
+  read_xml(link1415,
+           encoding = "",
+           as_html = TRUE)
+
+# Extract by source of request.
+media <- as.character(html_nodes(aipa1415, "media")) # Identify node
+media <- gsub("[^0-9]", "", media) # Keep onmy number
+media <-
+  media %>% as_tibble(media) %>% rename(Media = value) # Rename column for merge.
+
+academic <- as.character(html_nodes(aipa1415, "academia"))
+academic <- gsub("[^0-9]", "", academic)
+academic <-
+  academic %>% as_tibble(academic) %>% rename(Academic = value)
+
+business <- as.character(html_nodes(aipa1415, "business"))
+business <- gsub("[^0-9]", "", business)
+business <-
+  business %>% as_tibble(business) %>% rename(Business = value)
+
+orginisation <- as.character(html_nodes(aipa1415, "organizations"))
+orginisation <- gsub("[^0-9]", "", orginisation)
+orginisation <-
+  orginisation %>% as_tibble(orginisation) %>% rename(Orginisation = value)
+
+public <- as.character(html_nodes(aipa1415, "public"))
+public <- gsub("[^0-9]", "", public)
+public <- public %>% as_tibble(public) %>% rename(Public = value)
+
+decline <- as.character(html_nodes(aipa1415, "declinetoidentify"))
+decline <- gsub("[^0-9]", "", decline)
+decline <-
+  decline %>% as_tibble(decline) %>% rename(Decline = value)
+
+# Bind columns together
+sourcerequest1415 <-
+  cbind(academic, business, media, orginisation, public, decline)
+sourcerequest1415 <-
+  apply(sourcerequest1415, 2, as.numeric) # Make numeric for sums.
+x <- colSums(sourcerequest1415) # Calculate column sums
+sourcerequest1415 <-
+  as_tibble(rbind(x, sourcerequest1415)) # add back to table
+rm(x) # remove temp df
+sourcerequest1415 <-
+  sourcerequest1415[c(1),] # remove the rest of the rows and leave only the column sum.
+
+# Add year variable
+sourcerequest1415 <- sourcerequest1415 %>%
+  add_column(Year = "2014-2015", .before = 1)
+```
+
+```{r bind data from 2006-2007 to 2014-2015}
+sourcerequest0615 <-
+  rbind(
+    sourcerequest1314,
+    sourcerequest1415
+  )
+```
+
+```{r remove files from 2006-2007 to 2014-2015 no longer needed}
+rm(
+  media,
+  orginisation,
+  public,
+  academic,
+  business,
+  decline,
+  sourcerequest,
+  sourcerequest1314,
+  sourcerequest1415,
+  link0607,
+  link0708,
+  link0809,
+  link0910,
+  link1011,
+  link1112,
+  link1213,
+  link1314,
+  link1415
+)
+```
+
+```{r import data 2015-2016 to 2019-2020}
+# Import data from .csv files on Canadian government website.
+```
+
+```{r clean 2015-2016}
+link1516 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20152106-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file. read_csv seems to work better than read.csv
+aipa1516 <-
+  read_csv(link1516, skip = 4, col_names = TRUE, locale = locale(encoding = "UTF-8"))
+
+# Create a copy for working on
+sourcerequest <- aipa1516 %>%
+  drop_na()
+
+# Keep only the sources of requests for that reporting period
+sourcerequest <-
+  as.tibble(
+    subset(
+      sourcerequest,
+      select = c(
+        "Media",
+        "Academia",
+        "Business (private sector)",
+        "Organization",
+        "Public",
+        "Decline to Identify"
+      )
+    ) %>% rename(Business = "Business (private sector)",
+                 Decline = "Decline to Identify")
+  )
+
+# Find column sum values
+x <- colSums(sourcerequest)
+x <- t(x) # transpose
+sourcerequest <- rbind(x, sourcerequest) # add back to table
+rm(x) # remove temp df
+sourcerequest <-
+  sourcerequest[c(1),] # remove the rest of the rows and leave only the column sum.
+sourcerequest <- as.tibble(sourcerequest)
+
+# Add year variable
+sourcerequest1516 <- sourcerequest %>%
+  add_column(Year = "2015-2016", .before = 1)
+```
+
+```{r clean 2016 - 2017}
+link1617 <-
+"https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20171219-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1617 <-
+read_csv(link1617, skip = 4, col_names = TRUE, locale = locale(encoding = "UTF-8"))
+
+# Create a copy for working on
+sourcerequest <- aipa1617 %>%
+drop_na()
+
+# Keep only the sources of requests for that reporting period
+sourcerequest <-
+as.tibble(
+subset(
+sourcerequest,
+select = c(
+"Media",
+"Academia",
+"Business (private sector)",
+"Organization",
+"Public",
+"Decline to Identify"
+)
+) %>% rename(Business = "Business (private sector)",
+Decline = "Decline to Identify")
+)
+
+# Find column sum values
+x <- colSums(sourcerequest)
+x <- t(x) # transpose
+sourcerequest <- rbind(x, sourcerequest) # add back to table
+rm(x) # remove temp df
+sourcerequest <-
+sourcerequest[c(1),] # remove the rest of the rows and leave only the column sum.
+sourcerequest <- as.tibble(sourcerequest)
+
+# Add year variable
+sourcerequest1617 <- sourcerequest %>%
+add_column(Year = "2016-2017", .before = 1)
+```
+
+```{r clean 2017-2018}
+link1718 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/20181218-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1718 <-
+  read_csv(link1718, skip = 4, col_names = TRUE, locale = locale(encoding = "UTF-8"))
+
+# Create a copy for working on
+sourcerequest <- aipa1718 %>%
+  drop_na()
+
+# Keep only the sources of requests for that reporting period
+sourcerequest <-
+  as.tibble(
+    subset(
+      sourcerequest,
+      select = c(
+        "Media",
+        "Academia",
+        "Business (private sector)",
+        "Organization",
+        "Public",
+        "Decline to Identify"
+      )
+    ) %>% rename(Business = "Business (private sector)",
+                 Decline = "Decline to Identify")
+  )
+
+# Find column sum values
+x <- colSums(sourcerequest)
+x <- t(x) # transpose
+sourcerequest <- rbind(x, sourcerequest) # add back to table
+rm(x) # remove temp df
+sourcerequest <-
+  sourcerequest[c(1),] # remove the rest of the rows and leave only the column sum.
+sourcerequest <- as.tibble(sourcerequest)
+
+# Add year variable
+sourcerequest1718 <- sourcerequest %>%
+  add_column(Year = "2017-2018", .before = 1)
+```
+
+```{r clean 2018-2019}
+link1819 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/2018-19-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1819 <-
+  read_csv(link1819, skip = 4, col_names = TRUE, locale = locale(encoding = "UTF-8"))
+
+# Create a copy for working on
+sourcerequest <- aipa1819 %>%
+  drop_na()
+
+# Keep only the sources of requests for that reporting period
+sourcerequest <-
+  as.tibble(
+    subset(
+      sourcerequest,
+      select = c(
+        "Media",
+        "Academia",
+        "Business (private sector)",
+        "Organization",
+        "Public",
+        "Decline to Identify"
+      )
+    ) %>% rename(Business = "Business (private sector)",
+                 Decline = "Decline to Identify")
+  )
+
+# Find column sum values
+x <- colSums(sourcerequest)
+x <- t(x) # transpose
+sourcerequest <- rbind(x, sourcerequest) # add back to table
+rm(x) # remove temp df
+sourcerequest <-
+  sourcerequest[c(1),] # remove the rest of the rows and leave only the column sum.
+
+# Add year variable
+sourcerequest1819 <- sourcerequest %>%
+  add_column(Year = "2018-2019", .before = 1)
+```
+
+```{r clean 2019-2020}
+link1920 <-
+  "https://www.canada.ca/content/dam/tbs-sct/documents/access-information-privacy/2019-20-ati-eng.csv"
+
+# Load .csv dropping the first 4 rows of the .csv file
+aipa1920 <-
+  read_csv(link1920, skip = 2, col_names = TRUE, locale = locale(encoding = "UTF-8"))
+
+# Create a copy for working on
+sourcerequest <- aipa1920 %>%
+  drop_na()
+
+# Keep only the sources of requests for that reporting period
+sourcerequest <-
+  as.tibble(
+    subset(
+      sourcerequest,
+      select = c(
+        "Media",
+        "Academia",
+        "Business (private sector)",
+        "Organization",
+        "Public",
+        "Decline to Identify"
+      )
+    ) %>% rename(Business = "Business (private sector)",
+                 Decline = "Decline to Identify")
+  )
+
+# Find column sum values
+x <- colSums(sourcerequest)
+x <- t(x) # transpose
+sourcerequest <- rbind(x, sourcerequest) # add back to table
+rm(x) # remove temp df
+sourcerequest <-
+  sourcerequest[c(1),] # remove the rest of the rows and leave only the column sum.
+
+# Add year variable
+sourcerequest1920 <- sourcerequest %>%
+  add_column(Year = "2019-2020", .before = 1)
+```
+
+```{r combine 2015-2020 into total source of information requests by type each year}
+sourcerequest1520 <-
+  rbind(
+    sourcerequest1516,
+    sourcerequest1617,
+    sourcerequest1718,
+    sourcerequest1819,
+    sourcerequest1920
+  )
+```
+
+```{r remove files from 2006-2007 to 2014-2015 no longer needed}
+rm(
+  sourcerequest,
+  sourcerequest1516,
+  sourcerequest1617,
+  sourcerequest1718,
+  sourcerequest1819,
+  sourcerequest1920,
+  link1516,
+  link1617,
+  link1718,
+  link1819,
+  link1920
+)
+```
+
+```{r combine all Access to Information source of requests by type data files 1996-2006, 2007-2014, 2015-2019}
+sourcerequest1520 <-
+  sourcerequest1520 %>% rename(Orginisation = Organization,
+                               Academic = Academia)
+
+sourcerequest9606 <-
+  sourcerequest9606 %>% select(Year, Academic, Business, Media, Orginisation, Public, Decline)
+sourcerequest0615 <-
+  sourcerequest0615 %>% select(Year, Academic, Business, Media, Orginisation, Public, Decline)
+sourcerequest1520 <-
+  sourcerequest1520 %>% select(Year, Academic, Business, Media, Orginisation, Public, Decline)
+
+sourcerequest9620 <-
+  as.tibble(rbind(sourcerequest9606, sourcerequest0615, sourcerequest1520))
+
+sourcerequest9620 <- sourcerequest9620 %>%
+  mutate_at(vars(Academic, Business, Media, Orginisation, Public, Decline),
+            as.numeric)
+```
+
+```{r remove 1996-2006, 2006-2015, 2015-2020 files no longer needed}
+# Remove data frames no longer required
+rm(sourcerequest1520, sourcerequest0615, sourcerequest9606)
+```
+
+```{r line plot for annual ATI requests}
+total <-
+  sourcerequest9620 %>% rowwise() %>%  mutate_if(is.numeric, funs(ifelse(is.na(.), 0, .))) %>% mutate(Total = sum(c_across(
+    c(Business, Public, Media, Orginisation, Academic, Decline)
+  )))
+total <- total %>% select(Year, Total)
+ggplot(total, aes(x = Year, y = Total, group = 1)) +
+  geom_line(
+    color = "Black",
+    size = 1,
+    alpha = 0.9,
+    linetype = 1
+  ) +
+  theme_bw() +
+  labs(title = "Access to Information requests, 1996-2020",
+       subtitle = "Total number of requests made under the Federal Access to Information Act by year",
+       caption = "Source: Government of Canada Treasury Board Secretariat") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  theme(axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.x = element_blank())
+```
